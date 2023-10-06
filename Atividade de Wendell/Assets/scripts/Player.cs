@@ -14,6 +14,8 @@ public class Player : MonoBehaviour
     private Transform cam;
 
     Vector3 moveDirection;
+
+    private bool isWalking;
     
     public float smoothRotTime;
     private float turnSmoothVelocity;
@@ -38,8 +40,8 @@ public class Player : MonoBehaviour
 
     void Move()
     {
-        Debug.Log(controller.isGrounded);
-        if (controller.isGrounded)
+        
+            if (controller.isGrounded)
         {
             float horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = Input.GetAxisRaw("Vertical");
@@ -48,19 +50,32 @@ public class Player : MonoBehaviour
 
             if (direction.magnitude > 0)
             {
-                float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
-                float smoothAngel = Mathf.SmoothDampAngle(transform.eulerAngles.y, angle, ref turnSmoothVelocity, smoothRotTime);
+                if (!anim.GetBool("atack"))
+                {
+                    float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
+                    float smoothAngel = Mathf.SmoothDampAngle(transform.eulerAngles.y, angle, ref turnSmoothVelocity, smoothRotTime);
             
-                transform.rotation = Quaternion.Euler(0f,angle,0f);
+                    transform.rotation = Quaternion.Euler(0f,angle,0f);
                 
-                moveDirection = Quaternion.Euler(0f, angle, 0f) * Vector3.forward * speed ;
+                    moveDirection = Quaternion.Euler(0f, angle, 0f) * Vector3.forward * speed ;
             
-                anim.SetInteger("transition",1);
+                    anim.SetInteger("transition",1);
+
+                    isWalking = true;
+                }
+                else
+                {
+                    anim.SetBool("andando",false);
+                    moveDirection = Vector3.zero;
+                }
             }
-            else
+            else if(isWalking)
             {
-                //anim.SetInteger("transition",0);
+                anim.SetBool("andando",false);
+                anim.SetInteger("transition",0);
                 moveDirection = Vector3.zero;
+
+                isWalking = false;
             }
         }
 
@@ -76,13 +91,25 @@ public class Player : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                StartCoroutine("atacak");
+                if (anim.GetBool("andando"))
+                {
+                    anim.SetBool("andando",false);
+                    anim.SetInteger("transition", 0);
+                }
+
+                if (!anim.GetBool("andando"))
+                {
+                    StartCoroutine("atack"); 
+                }
+                     
+                
             }
         }
     }
 
-    IEnumerator atacak()
+    IEnumerator atack()
     {
+        anim.SetBool("atack", true);
         anim.SetInteger("transition",2);
 
         yield return new WaitForSeconds(0.4f);
@@ -97,6 +124,7 @@ public class Player : MonoBehaviour
         yield return new WaitForSeconds(1f);
         
         anim.SetInteger("transition",0);
+        anim.SetBool("atack",false);
     }
 
     void GetEnemiesList()
