@@ -5,28 +5,29 @@ using UnityEngine.AI;
 
 public class Inimigo : MonoBehaviour
 {
-    [Header("atributos")]
-    public float totalHealth;
+    [Header("atributos")] 
+    public float totalHealth = 100;
 
     public float attackDamage;
 
     public float movementSpeed;
     public float lookRadius;
+    public float colliderRadius = 2f;
 
-    [Header("Components")] 
-    private Animator anim;
+    [Header("Components")] private Animator anim;
 
     private CapsuleCollider capsule;
 
     private NavMeshAgent agent;
 
-    [Header("others")]
-    private Transform player;
+    [Header("others")] private Transform player;
 
     private bool walking;
 
     private bool attacking;
-    
+    private bool hiting;
+    private bool waitFor;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -46,7 +47,7 @@ public class Inimigo : MonoBehaviour
         {
             // O PERSONAGEM ESTA NO RAIO DE AÇÃO
             agent.isStopped = false;
-            
+
             if (!attacking)
             {
                 agent.SetDestination(player.position);
@@ -59,26 +60,52 @@ public class Inimigo : MonoBehaviour
                 //O PERSONAGEM ESTA NO RAIO DE ATAQUE    
                 // AQUI VEM O MÉTODO DE ATAQUE
 
-                agent.isStopped = true;
+                StartCoroutine("Attack");
             }
             else
             {
                 attacking = false;
             }
         }
-        
+
         else
         {
             //FORA DO RAIO DE AÇÃO
+            agent.isStopped = true;
             anim.SetBool("Walk Forward", false);
             walking = false;
             attacking = false;
-            agent.isStopped = false;
+            
         }
     }
-    private void OnDrawGizmosSelected()
+
+    IEnumerator Attack()
     {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, lookRadius);
+        attacking = true;
+        walking = false;
+        anim.SetBool("Bite Attack",false);
+        yield return new WaitForSeconds(0.4f);
+        GetPlayer();
+        yield return new WaitForSeconds(1f);
+
     }
-}
+
+
+    void GetPlayer()
+    {
+        foreach (Collider c in Physics.OverlapSphere((transform.position + transform.forward * colliderRadius), colliderRadius))
+        {
+            if (c.gameObject.CompareTag("Player"))
+            {
+                
+            }
+        }
+    }
+
+
+    private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, lookRadius);
+        }
+    }

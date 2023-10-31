@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
     private CharacterController controller;
     public float speed;
     public float gravity;
+    public float damage = 20;
 
     private Animator anim;
 
@@ -118,7 +119,13 @@ public class Player : MonoBehaviour
 
         foreach (Transform e in enemyList)
         {
-            Debug.Log(e.name);
+            //aplica dano ao inimigo
+            Inimigo enemy = e.GetComponent<Inimigo>();
+
+            if (enemy != null)
+            {
+                enemy.GetHit(damage);
+            }
         }
         
         yield return new WaitForSeconds(1f);
