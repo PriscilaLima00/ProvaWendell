@@ -83,10 +83,13 @@ public class Inimigo : MonoBehaviour
     {
         attacking = true;
         walking = false;
-        anim.SetBool("Bite Attack",false);
-        yield return new WaitForSeconds(0.4f);
+        anim.SetBool("Walk Forward",false);
+        anim.SetBool("Bite Attack",true);
+        yield return new WaitForSeconds(2f);
         GetPlayer();
-        yield return new WaitForSeconds(1f);
+        //yield return new WaitForSeconds(1f);
+        
+        
 
     }
 
@@ -97,7 +100,8 @@ public class Inimigo : MonoBehaviour
         {
             if (c.gameObject.CompareTag("Player"))
             {
-                
+                // APLICA DANO NO PLAYER
+                Debug.Log("bateu no player");
             }
         }
     }
