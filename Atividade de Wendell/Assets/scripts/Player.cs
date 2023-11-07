@@ -6,6 +6,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     private CharacterController controller;
+    public float totalHealth;
     public float speed;
     public float gravity;
     public float damage = 20;
@@ -15,8 +16,12 @@ public class Player : MonoBehaviour
     private Transform cam;
 
     Vector3 moveDirection;
-
+    
     private bool isWalking;
+    private bool waitFor;
+    private bool isHitting;
+
+    public bool isDead;
     
     public float smoothRotTime;
     private float turnSmoothVelocity;
@@ -35,14 +40,18 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Move();
-        GetMouseInput();
+        if (!isDead)
+        {
+            Move();
+            GetMouseInput();
+        }
+        
     }
 
     void Move()
     {
         
-            if (controller.isGrounded)
+            if (controller.isGrounded )
         {
             float horizontal = Input.GetAxisRaw("Horizontal");
             float vertical = Input.GetAxisRaw("Vertical");
@@ -110,28 +119,34 @@ public class Player : MonoBehaviour
 
     IEnumerator atack()
     {
-        anim.SetBool("atack", true);
-        anim.SetInteger("transition",2);
-
-        yield return new WaitForSeconds(0.4f);
-        
-        GetEnemiesList();
-
-        foreach (Transform e in enemyList)
+        if (!waitFor && !isHitting)
         {
-            //aplica dano ao inimigo
-            Inimigo enemy = e.GetComponent<Inimigo>();
+            waitFor = true;
 
-            if (enemy != null)
+            anim.SetBool("atack", true);
+            anim.SetInteger("transition", 2);
+
+            yield return new WaitForSeconds(0.4f);
+
+            GetEnemiesList();
+
+            foreach (Transform e in enemyList)
             {
-                enemy.GetHit(damage);
+                //aplica dano ao inimigo
+                Inimigo enemy = e.GetComponent<Inimigo>();
+
+                if (enemy != null)
+                {
+                    enemy.GetHit(damage);
+                }
             }
+
+            yield return new WaitForSeconds(1f);
+
+            anim.SetInteger("transition", 0);
+            anim.SetBool("atack", false);
+            waitFor = false;
         }
-        
-        yield return new WaitForSeconds(1f);
-        
-        anim.SetInteger("transition",0);
-        anim.SetBool("atack",false);
     }
 
     void GetEnemiesList()
@@ -144,6 +159,36 @@ public class Player : MonoBehaviour
                 enemyList.Add(c.transform);
             }
         }
+    }
+    
+    public void GetHit(float damage)
+    {
+        totalHealth -= damage;
+        
+        if (totalHealth > 0)
+        {
+            //player vivo
+            StopCoroutine("Attack");
+            anim.SetInteger("transition", 3);
+            isHitting = true;
+            StopCoroutine("RecoveryFromHit");
+            
+        }
+        else
+        {
+            //player morre
+            isDead = true;
+            anim.SetTrigger("Die");
+        }
+    }
+
+    IEnumerator RecoveryFromHit()
+    {
+        yield return new WaitForSeconds(1f);
+        anim.SetInteger("transition", 0);
+        isHitting = false;
+        anim.SetBool("andando", false);
+
     }
 
     private void OnDrawGizmosSelected()

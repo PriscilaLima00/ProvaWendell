@@ -25,6 +25,12 @@ public class Inimigo : MonoBehaviour
     private bool attacking;
     private bool hiting;
     private bool waitFor;
+    public bool playerIsDead;
+
+    [Header("wayPoints")] 
+    public List<Transform> wayPoints = new List<Transform>();
+    public int currentPathIndex;
+    public float pathDistance;
 
     // Start is called before the first frame update
     void Start()
@@ -72,18 +78,31 @@ public class Inimigo : MonoBehaviour
             else
             {
                 //FORA DO RAIO DE AÇÃO
-                agent.isStopped = true;
+                //agent.isStopped = true;
                 anim.SetBool("Walk Forward", false);
                 walking = false;
                 attacking = false;
-
+                MoveTowayPoint();
             }
         }
     }
 
+    void MoveTowayPoint()
+    {
+        if (wayPoints.Count > 0)
+        {
+            float distance = Vector3.Distance(wayPoints[currentPathIndex].position, transform.position);
+            agent.destination = wayPoints[currentPathIndex].position;
+            if (distance <= pathDistance)
+            {
+                //parte para o próximo ponto
+                currentPathIndex = Random.Range(0, wayPoints.Count);
+            }
+        }
+    }
     IEnumerator Attack()
     {
-        if (!waitFor && !hiting)
+        if (!waitFor && !hiting && !playerIsDead)
         {
             
             waitFor = true;
@@ -96,8 +115,16 @@ public class Inimigo : MonoBehaviour
             //yield return new WaitForSeconds(1f);
             waitFor = false;
         }
-        
-        
+
+        if (playerIsDead)
+        {
+            anim.SetBool("Walk Forward",false);
+            anim.SetBool("Bite Attack",false);
+            walking = false;
+            attacking = false;
+            agent.isStopped = true;
+        }
+
     }
 
 
@@ -108,8 +135,8 @@ public class Inimigo : MonoBehaviour
             if (c.gameObject.CompareTag("Player"))
             {
                 // APLICA DANO NO PLAYER
-                Debug.Log("bateu no player");
-                
+                c.gameObject.GetComponent<Player>().GetHit(attackDamage);
+                playerIsDead = c.gameObject.GetComponent<Player>().isDead;
             }
         }
     }
