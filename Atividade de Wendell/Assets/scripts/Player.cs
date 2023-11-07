@@ -122,9 +122,9 @@ public class Player : MonoBehaviour
             //aplica dano ao inimigo
             Inimigo enemy = e.GetComponent<Inimigo>();
 
-            //if (enemy != null)
+            if (enemy != null)
             {
-              //  enemy.GetHit(damage);
+                enemy.GetHit(damage);
             }
         }
         
